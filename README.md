@@ -1,2 +1,5 @@
 ## Simple Sublime Text 2 Plugin for Phing
-Searches for build.xml file in your project directory and allows you to run targets defined in it. Output sends to sublime output buffer.
+
+This plugin is an extension of the one developed by nLight for Sublime Text 2.  It replaces the xml reader with code that calls phing from within the python script.  This was done primarily because the original was not set up to deal with nested build files [see phing importtask](http://www.phing.info/docs/guide/stable/chapters/appendixes/AppendixB-CoreTasks.html#ImportTask)
+
+This project is under construction.  Installation and usage will be completed once the project is added to [Package Control](https://sublime.wbond.net/)
