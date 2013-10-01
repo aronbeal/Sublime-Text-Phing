@@ -1,0 +1,6 @@
+[
+    {
+        "caption": "Phing Build",
+        "command": "phing"
+    }
+]

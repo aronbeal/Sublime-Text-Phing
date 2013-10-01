@@ -3,6 +3,8 @@ from sys import stdout, exc_info
 from subprocess import call, PIPE, STDOUT, Popen
 import re, os
 from time import time, sleep
+import xml.parsers.expat
+from glob import glob
 
 def which(name, flags=os.X_OK):
     """Search PATH for executable files with the given name.
@@ -47,23 +49,40 @@ class PhingCommand(sublime_plugin.WindowCommand):
     """
     def run(self):
         """ Command main method """
+        print('Executing "phing" command');
         phing_candidates = which('phing')
         if len(phing_candidates) == 0:
             sublime.error_message("Phing does not appear to be installed on this system.")
             return
-        self.phing = os.path.realpath(phing_candidates[0].strip())
+        self.phing = os.path.realpath(phing_candidates[0].strip())        
         if not os.path.exists(self.phing) or not os.access(self.phing, os.X_OK):
             sublime.error_message("Phing does not appear to be installed on this system.")
+        
+        """ Test xml for valid syntax """
         project_data = self.window.project_data()
         self.project_root = os.path.expanduser(project_data['folders'][0]['path'])
         try:
+            if not os.path.isfile("%s/build.xml" % self.project_root):
+                sublime.error_message("Project build.xml file not found.  Cannot run phing")
+                return
+            parser = xml.parsers.expat.ParserCreate()
+            parser.ParseFile(open("%s/build.xml" % self.project_root, 'r'))
+        except (Exception) as e:
+            print("Could not open build.xml file: ")
+
+        """ Invoke phing on the build file in the project root.  
+        Use the returned phing target list to build a quick panel
+        for the user to choose the desired one. """
+        try:
             p = Popen([self.phing, '-list','-logger', 'phing.listener.DefaultLogger'],
                 cwd=self.project_root, stdout=PIPE, stderr=STDOUT)
-            p.wait()
             output = p.communicate(None)
             if(output is None):
+                sublime.error_message("Error communicating with code evaluation process")
                 return
-            output = output[0].decode()
+            if type(output) is not str:    
+                output = output[0].decode()
+            #print ("Output: ", output)
         except (IOError, Exception) as e:
             sublime.error_message("Error({0}): {1}".format(e.errno, e.strerror))
             return
@@ -109,8 +128,11 @@ class PhingCommand(sublime_plugin.WindowCommand):
                 process_end_time = process_start_time + 30 #max 60 seconds
                 p = Popen([self.phing, '-logger', 'phing.listener.DefaultLogger', target],
                     cwd=self.project_root, stdout=PIPE, stderr=STDOUT)
-                output = p.communicate(None)[0].decode()
-                print (output)
+                output = p.communicate(None)[0]
+                if type(output) is str:
+                    print (output)
+                else:
+                    print (output.decode())
 
             except (IOError, Exception) as e:
                 sublime.error_message("Error({0}): {1}".format(e.errno, e.strerror))

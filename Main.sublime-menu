@@ -1,0 +1,9 @@
+[{
+    "id": "tools",
+    "caption": "Tools",
+    "children": [{
+        "id": "sublime_text_phing_build",
+        "caption": "Phing Build",
+        "command": "phing"
+    }]
+}]
