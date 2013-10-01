@@ -66,9 +66,14 @@ class PhingCommand(sublime_plugin.WindowCommand):
                 sublime.error_message("Project build.xml file not found.  Cannot run phing")
                 return
             parser = xml.parsers.expat.ParserCreate()
-            parser.ParseFile(open("%s/build.xml" % self.project_root, 'r'))
-        except (Exception) as e:
-            print("Could not open build.xml file: ")
+            #print ("Attempting to open ", "%s/build.xml" % self.project_root)
+            f = open("%s/build.xml" % self.project_root, 'rb')
+            #print ("Attempting to parse file")
+            parser.ParseFile(f)
+        except (xml.parsers.expat.ExpatError, Exception) as e:
+            print("Could not open build.xml file.  Exiting.")
+            print (e)
+            return
 
         """ Invoke phing on the build file in the project root.  
         Use the returned phing target list to build a quick panel
